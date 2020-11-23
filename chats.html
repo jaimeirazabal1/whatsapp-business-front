@@ -8,38 +8,62 @@
   <!-- Font Awesome File -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <!-- Font Awesome File -->
-  <script src="lib/js/vue.js"></script>
+  <script src="https://unpkg.com/vue"></script>
   <script src="lib/js/vue-resource.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="lib/js/socket.io.js"></script>
-  <script type="text/javascript" src="src/js/socket_app.js"></script>
+  <script type="text/javascript" src="lib/js/moment.min.js"></script>
+  <script type="text/javascript" src="lib/js/moment-with-locales.min.js"></script>
+  <script src="../js/vendor.min.js"></script>
+  <!-- object -->
+  <script type="text/javascript" src="../js/object/object.intranet.js"></script>
+  <script type="text/javascript" src="../js/object/object.admin.usuario.nuevo.js"></script>
+  <script type="text/javascript" src="../js/object/object.usuario.js"></script>
+  <script type="text/javascript" src="../js/controller/controller.usuario.js"></script>
+  <script type="text/javascript" src="../js/acceso.js"></script>
+  <style type="text/css">
+    .active_chat{
+      background: #dcf8c6;
+      color:white;
+      border:1px solid green;
+    }
+    .active_chat:hover{
+      background: #dcf8c6;
+      color:white;
+      border:1px solid green;
+    }
+  </style>
+  
 </head>
 
-<body>
+<body >
 
-  <div class="container app">
+  <div class="container app" id="whatsapp">
     <div class="row app-one">
 
       <div class="col-sm-4 side">
         <div class="side-one">
           <!-- Heading -->
+
           <div class="row heading">
             <div class="col-sm-3 col-xs-3 heading-avatar">
               <div class="heading-avatar-icon">
-                <img src="http://lorempixel.com/400/200/">
+                <img src="src/img/operator.png">
               </div>
+
             </div>
-            <div class="col-sm-1 col-xs-1  heading-dot  pull-right">
+            <div class="col-md-9">
+              <center><b>{{user_email}}</b> <a href="../">Salir</a></center>
+            </div>
+           <!--  <div class="col-sm-1 col-xs-1  heading-dot  pull-right">
+
               <i class="fa fa-ellipsis-v fa-2x  pull-right" aria-hidden="true"></i>
-            </div>
-            <div class="col-sm-2 col-xs-2 heading-compose  pull-right">
-              <i class="fa fa-comments fa-2x  pull-right" aria-hidden="true"></i>
-            </div>
-            <div class="col-sm-2 col-xs-2 heading-compose  pull-right" style="margin-top: 10px;z">
-              <a href="../">Salir</a>
-            </div>
+            </div> -->
+         <!--    <div class="col-sm-2 col-xs-2 heading-compose  pull-right">
+            </div> -->
+            
           </div>
           <!-- Heading End -->
 
@@ -56,20 +80,20 @@
           <!-- Search Box End -->
           <!-- sideBar -->
           <div class="row sideBar">
-            <div class="row sideBar-body">
-              <div class="col-sm-3 col-xs-3 sideBar-avatar">
+            <div class="row sideBar-body" v-for="cliente in mis_clientes" :ref="'div_'+cliente.cliente.cliente_numero">
+              <div class="col-sm-2 col-xs-2 sideBar-avatar">
                 <div class="avatar-icon">
-                  <img src="http://lorempixel.com/400/200/">
+                  <img src="src/img/user_image.svg">
                 </div>
               </div>
-              <div class="col-sm-9 col-xs-9 sideBar-main">
-                <div class="row">
+              <div class="col-sm-9 col-xs-9 sideBar-main"  :title="cliente.cliente_data.name" @click="show_client_message(cliente)">
+                <div class="row" >
                   <div class="col-sm-8 col-xs-8 sideBar-name">
-                    <span class="name-meta">Ankit Jain
+                    <span class="name-meta" > {{ cliente.cliente.cliente_numero }} <br> {{ cliente.cliente_data.firstName }} {{ cliente.cliente_data.lastName }}
                   </span>
                   </div>
                   <div class="col-sm-4 col-xs-4 pull-right sideBar-time">
-                    <span class="time-meta pull-right">18:18
+                    <span class="time-meta pull-right">{{  (cliente.cliente_data.last_message.split('.')[0] | moment) }}
                   </span>
                   </div>
                 </div>
@@ -90,12 +114,12 @@
         <!-- Heading -->
         <div class="row heading">
           <div class="col-sm-2 col-md-1 col-xs-3 heading-avatar">
-            <div class="heading-avatar-icon">
-              <img src="http://lorempixel.com/400/200/">
+            <div class="heading-avatar-icon" v-if="current_cliente">
+              <img src="src/img/user_image.svg">
             </div>
           </div>
           <div class="col-sm-8 col-xs-7 heading-name">
-            <a class="heading-name-meta">Ankit Jain
+            <a class="heading-name-meta">{{current_cliente.firstName}} {{current_cliente.lastName}}
             </a>
             <span class="heading-online">Online</span>
           </div>
@@ -106,61 +130,62 @@
         <!-- Heading End -->
 
         <!-- Message Box -->
-        <div class="row message" id="conversation">
+        <div class="row message" id="conversation" >
 
           <div class="row message-previous">
             <div class="col-sm-12 previous">
               <a onclick="previous(this)" id="ankitjain28" name="20">
-              Show Previous Message!
+              <!-- Show Previous Message! -->
               </a>
             </div>
           </div>
-
-          <div class="row message-body">
-            <div class="col-sm-12 message-main-receiver">
-              <div class="receiver">
-                <div class="message-text">
-                 Hyy, Its Awesome..!
+          <span v-for="mensaje in mensajes">
+            <div class="row message-body" v-if="mensaje.direction == 'IN' ">
+              <div class="col-sm-12 message-main-receiver">
+                <div class="receiver">
+                  <div class="message-text" v-html="mensaje.message_content">
+                  </div>
+                  <span class="message-time pull-right">
+                    {{  (mensaje.created_at.split('.')[0] | moment) }}
+                  </span>
                 </div>
-                <span class="message-time pull-right">
-                  Sun
-                </span>
               </div>
             </div>
-          </div>
 
-          <div class="row message-body">
-            <div class="col-sm-12 message-main-sender">
-              <div class="sender">
-                <div class="message-text">
-                  Thanks n I know its awesome...!
+            <div class="row message-body" v-if="mensaje.direction == 'OUT' ">
+              <div class="col-sm-12 message-main-sender">
+                <div class="sender">
+                  <div class="message-text" v-html="mensaje.message_content">
+                  
+                  </div>
+                  <span class="message-time pull-right">
+                    {{  (mensaje.created_at.split('.')[0] | moment) }}
+                  </span>
                 </div>
-                <span class="message-time pull-right">
-                  Sun
-                </span>
               </div>
             </div>
-          </div>
+          </span>
         </div>
         <!-- Message Box End -->
 
         <!-- Reply Box -->
-        <div class="row reply">
+        <form class="row reply" @submit="send_message($event)" v-if="current_cliente">
          
           <div class="col-sm-11 col-xs-11 reply-main">
-            <textarea class="form-control" rows="1" id="comment"></textarea>
+            <input type="text" class="form-control" v-model="message"/>
           </div>
           
-          <div class="col-sm-1 col-xs-1 reply-send">
+          <div class="col-sm-1 col-xs-1 reply-send" v-on:click="send_message" >
             <i class="fa fa-send fa-2x" aria-hidden="true"></i>
           </div>
-        </div>
+        </form>
         <!-- Reply Box End -->
       </div>
       <!-- Conversation End -->
     </div>
     <!-- App One End -->
   </div>
+  <script type="text/javascript" src="src/js/socket_app.js"></script>
 
   <!-- App End -->
 </body>
